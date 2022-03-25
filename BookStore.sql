@@ -58,9 +58,11 @@ create or alter Proc UserForgotPassword
 )
 as
 begin
-	select * from Users
-	where
-		Email = @Email
+	Update Users 
+	set 
+		Password ='Null'
+	where 
+		Email = @Email;
 End;
 
 -- Procedure For Reset Password --
@@ -77,3 +79,4 @@ BEGIN
 	WHERE 
 		Email = @Email;
 End;
+

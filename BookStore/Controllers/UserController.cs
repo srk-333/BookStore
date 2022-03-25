@@ -98,7 +98,7 @@
                 var forgotPasswordToken = this.userBL.ForgotPassword(email);
                 if (forgotPasswordToken != null)
                 {
-                    return this.Ok(new { Success = true, message = " Token Sent on Mail ", Response = forgotPasswordToken });
+                    return this.Ok(new { Success = true, message = " Token Sent on Mail To Reset The Password", Response = forgotPasswordToken });
                 }
                 else
                 {

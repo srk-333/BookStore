@@ -19,17 +19,17 @@
     public class UserRL : IUserRL
     {
         /// <summary>
-        /// The connection string
+        /// The SQL connection
         /// </summary>
-        private readonly string connectionString = "Data Source=SAURAVSHARMA;Initial Catalog=BookStore;Persist Security Info=True;User ID=saurav;Password=Saurav78#$;";
-     
+        private SqlConnection sqlConnection;
+       
         /// <summary>
         /// Initializes a new instance of the <see cref="UserRL"/> class.
         /// </summary>
         /// <param name="Iconfiguration">The configuration.</param>
-        public UserRL(IConfiguration Iconfiguration)
+        public UserRL(IConfiguration configuration)
         {
-            this.Iconfiguration = Iconfiguration;
+            this.Configuration = configuration;
         }
 
         /// <summary>
@@ -38,7 +38,7 @@
         /// <value>
         /// The configuration.
         /// </value>
-        private IConfiguration Iconfiguration { get; }
+        private IConfiguration Configuration { get; }
       
         /// <summary>
         /// Registers the specified user.
@@ -49,8 +49,8 @@
         {
             try
             {
-                    SqlConnection conn = new SqlConnection(this.connectionString);                  
-                    SqlCommand com = new SqlCommand("UserRegister", conn)
+                    sqlConnection = new SqlConnection(this.Configuration["ConnectionString:BookStore"]);                  
+                    SqlCommand com = new SqlCommand("UserRegister", sqlConnection)
                     {
                         CommandType = CommandType.StoredProcedure
                     };
@@ -58,9 +58,9 @@
                     com.Parameters.AddWithValue("@Email", user.Email);
                     com.Parameters.AddWithValue("@Password", user.Password);
                     com.Parameters.AddWithValue("@MobileNumber", user.Mobile);
-                    conn.Open();
+                    sqlConnection.Open();
                     int i = com.ExecuteNonQuery();
-                    conn.Close();
+                     sqlConnection.Close();
                     if (i >= 1)
                     {
                         return user;
@@ -86,14 +86,14 @@
         {
             try
             {
-                SqlConnection conn = new SqlConnection(this.connectionString);
-                SqlCommand com = new SqlCommand("UserLogin", conn)
+                sqlConnection = new SqlConnection(this.Configuration["ConnectionString:BookStore"]);
+                SqlCommand com = new SqlCommand("UserLogin", sqlConnection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
                 com.Parameters.AddWithValue("@Email", email);
                 com.Parameters.AddWithValue("@Password", password);
-                conn.Open();
+                sqlConnection.Open();
                 SqlDataReader rd = com.ExecuteReader();
                 if (rd.HasRows)
                 {
@@ -102,13 +102,13 @@
                         email = Convert.ToString(rd["Email"] == DBNull.Value ? default : rd["Email"]);
                     }
 
-                    conn.Close();
+                    sqlConnection.Close();
                     var token = this.GenerateJWTToken(email);
                     return token;
                 }
                 else
                 {
-                    conn.Close();
+                    sqlConnection.Close();
                     return null;
                 }
             }
@@ -126,7 +126,7 @@
         public string GenerateJWTToken(string email)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(this.Iconfiguration["Jwt:SecretKey"]);
+            var key = Encoding.ASCII.GetBytes(this.Configuration["Jwt:SecretKey"]);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] { new Claim("Email", email) }),
@@ -146,29 +146,23 @@
         {
             try
             {
-                SqlConnection conn = new SqlConnection(this.connectionString);
-                SqlCommand com = new SqlCommand("UserForgotPassword", conn)
+                sqlConnection = new SqlConnection(this.Configuration["ConnectionString:BookStore"]);
+                SqlCommand com = new SqlCommand("UserForgotPassword", sqlConnection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
                 com.Parameters.AddWithValue("@Email", email);
-                conn.Open();
-                SqlDataReader rd = com.ExecuteReader();
-                if (rd.HasRows)
+                sqlConnection.Open();
+                int i = com.ExecuteNonQuery();
+                sqlConnection.Close();
+                if (i >= 1)
                 {
-                    while (rd.Read())
-                    {
-                        email = Convert.ToString(rd["Email"] == DBNull.Value ? default : rd["Email"]);
-                    }
-
-                    conn.Close();
                     var token = this.GenerateJWTToken(email);
                     new MSMQ().Sender(token);
                     return token;
                 }
                 else
                 {
-                    conn.Close();
                     return null;
                 }
             }
@@ -191,16 +185,16 @@
             {
                 if (newPassword == confirmPassword)
                 {
-                    SqlConnection conn = new SqlConnection(this.connectionString);
-                    SqlCommand com = new SqlCommand("UserResetPassword", conn)
+                    sqlConnection = new SqlConnection(this.Configuration["ConnectionString:BookStore"]);
+                    SqlCommand com = new SqlCommand("UserResetPassword", sqlConnection)
                     {
                         CommandType = CommandType.StoredProcedure
                     };
                     com.Parameters.AddWithValue("@Email", email);
                     com.Parameters.AddWithValue("@Password", confirmPassword);
-                    conn.Open();
+                    sqlConnection.Open();
                     int i = com.ExecuteNonQuery();
-                    conn.Close();
+                    sqlConnection.Close();
                     if (i >= 1)
                     {
                         return true;

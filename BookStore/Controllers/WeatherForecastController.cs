@@ -26,7 +26,7 @@
         /// <summary>
         /// The logger
         /// </summary>
-        private readonly ILogger<WeatherForecastController> _logger;
+        private readonly ILogger<WeatherForecastController> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WeatherForecastController"/> class.
@@ -34,7 +34,7 @@
         /// <param name="logger">The logger.</param>
         public WeatherForecastController(ILogger<WeatherForecastController> logger)
         {
-           this._logger = logger;
+           this.logger = logger;
         }
 
         /// <summary>

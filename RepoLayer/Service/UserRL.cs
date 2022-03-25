@@ -26,7 +26,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="UserRL"/> class.
         /// </summary>
-        /// <param name="Iconfiguration">The configuration.</param>
+        /// <param name="configuration">The configuration.</param>
         public UserRL(IConfiguration configuration)
         {
             this.Configuration = configuration;
@@ -49,30 +49,34 @@
         {
             try
             {
-                    sqlConnection = new SqlConnection(this.Configuration["ConnectionString:BookStore"]);                  
-                    SqlCommand com = new SqlCommand("UserRegister", sqlConnection)
-                    {
-                        CommandType = CommandType.StoredProcedure
-                    };
-                    com.Parameters.AddWithValue("@Fullname", user.Fullname);
-                    com.Parameters.AddWithValue("@Email", user.Email);
-                    com.Parameters.AddWithValue("@Password", user.Password);
-                    com.Parameters.AddWithValue("@MobileNumber", user.Mobile);
-                    sqlConnection.Open();
-                    int i = com.ExecuteNonQuery();
-                     sqlConnection.Close();
-                    if (i >= 1)
-                    {
-                        return user;
-                    }
-                    else
-                    {
-                        return null;
-                    }             
+                this.sqlConnection = new SqlConnection(this.Configuration["ConnectionString:BookStore"]);
+                SqlCommand com = new SqlCommand("UserRegister", this.sqlConnection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                com.Parameters.AddWithValue("@Fullname", user.Fullname);
+                com.Parameters.AddWithValue("@Email", user.Email);
+                com.Parameters.AddWithValue("@Password", user.Password);
+                com.Parameters.AddWithValue("@MobileNumber", user.Mobile);
+                this.sqlConnection.Open();
+                int i = com.ExecuteNonQuery();
+                this.sqlConnection.Close();
+                if (i >= 1)
+                {
+                    return user;
+                }
+                else
+                {
+                    return null;
+                }
             }
             catch (Exception)
             {
                 throw;
+            }
+            finally
+            {
+                this.sqlConnection.Close();
             }
         }
 
@@ -86,14 +90,14 @@
         {
             try
             {
-                sqlConnection = new SqlConnection(this.Configuration["ConnectionString:BookStore"]);
-                SqlCommand com = new SqlCommand("UserLogin", sqlConnection)
+                this.sqlConnection = new SqlConnection(this.Configuration["ConnectionString:BookStore"]);
+                SqlCommand com = new SqlCommand("UserLogin", this.sqlConnection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
                 com.Parameters.AddWithValue("@Email", email);
                 com.Parameters.AddWithValue("@Password", password);
-                sqlConnection.Open();
+                this.sqlConnection.Open();
                 SqlDataReader rd = com.ExecuteReader();
                 if (rd.HasRows)
                 {
@@ -102,19 +106,23 @@
                         email = Convert.ToString(rd["Email"] == DBNull.Value ? default : rd["Email"]);
                     }
 
-                    sqlConnection.Close();
+                    this.sqlConnection.Close();
                     var token = this.GenerateJWTToken(email);
                     return token;
                 }
                 else
                 {
-                    sqlConnection.Close();
+                    this.sqlConnection.Close();
                     return null;
                 }
             }
             catch (Exception)
             {
                 throw;
+            }
+            finally
+            {
+                this.sqlConnection.Close();
             }
         }
 
@@ -146,15 +154,15 @@
         {
             try
             {
-                sqlConnection = new SqlConnection(this.Configuration["ConnectionString:BookStore"]);
-                SqlCommand com = new SqlCommand("UserForgotPassword", sqlConnection)
+                this.sqlConnection = new SqlConnection(this.Configuration["ConnectionString:BookStore"]);
+                SqlCommand com = new SqlCommand("UserForgotPassword", this.sqlConnection)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
                 com.Parameters.AddWithValue("@Email", email);
-                sqlConnection.Open();
+                this.sqlConnection.Open();
                 int i = com.ExecuteNonQuery();
-                sqlConnection.Close();
+                this.sqlConnection.Close();
                 if (i >= 1)
                 {
                     var token = this.GenerateJWTToken(email);
@@ -169,6 +177,10 @@
             catch (Exception)
             {
                 throw;
+            }
+            finally
+            {
+                this.sqlConnection.Close();
             }
         }
 
@@ -185,16 +197,16 @@
             {
                 if (newPassword == confirmPassword)
                 {
-                    sqlConnection = new SqlConnection(this.Configuration["ConnectionString:BookStore"]);
-                    SqlCommand com = new SqlCommand("UserResetPassword", sqlConnection)
+                    this.sqlConnection = new SqlConnection(this.Configuration["ConnectionString:BookStore"]);
+                    SqlCommand com = new SqlCommand("UserResetPassword", this.sqlConnection)
                     {
                         CommandType = CommandType.StoredProcedure
                     };
                     com.Parameters.AddWithValue("@Email", email);
                     com.Parameters.AddWithValue("@Password", confirmPassword);
-                    sqlConnection.Open();
+                    this.sqlConnection.Open();
                     int i = com.ExecuteNonQuery();
-                    sqlConnection.Close();
+                    this.sqlConnection.Close();
                     if (i >= 1)
                     {
                         return true;
@@ -212,6 +224,10 @@
             catch (Exception)
             {
                 throw;
+            }
+            finally
+            {
+                this.sqlConnection.Close();
             }
         }
     }

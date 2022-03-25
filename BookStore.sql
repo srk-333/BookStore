@@ -80,3 +80,99 @@ BEGIN
 		Email = @Email;
 End;
 
+/********* Create Book Table ********/
+create table Books
+(
+	bookId int Identity(1,1) PRIMARY KEY,
+	bookName varchar(Max) not null,
+	authorName varchar(250) not null,
+    rating int,   
+	totalRating int,
+	discountPrice Decimal,
+	originalPrice Decimal,
+	description varchar(Max) not null,
+	bookImage varchar(250),
+	BookCount int not null
+);
+
+/****** Stored Procedure For Books Table ******/
+-- Procedure To Add Book
+create or alter proc AddBook
+(
+	@bookName varchar(Max),
+	@authorName varchar(250),
+	@rating int,
+	@totalRating int,
+	@discountPrice Decimal,
+	@originalPrice Decimal,
+	@description varchar(Max),
+	@bookImage varchar(250),
+	@bookCount int
+)
+as
+BEGIN
+	Insert into Books (bookName, authorName, rating, totalRating, 
+	discountPrice, originalPrice, description, bookImage, BookCount)
+	values (@bookName, @authorName, @rating, @totalRating, @discountPrice,
+	@originalPrice, @description, @bookImage, @bookCount);
+End;
+
+-- Procedure To Update Book --
+create or alter proc UpdateBook
+(
+    @bookId int,
+	@bookName varchar(Max),
+	@authorName varchar(250),
+	@rating int,
+	@totalRating int,
+	@discountPrice Decimal,
+	@originalPrice Decimal,
+	@description varchar(Max),
+	@bookImage varchar(250),
+	@bookCount int
+)
+as
+BEGIN
+   Update Books set bookName = @bookName, 
+					authorName = @authorName,
+					rating = @rating, 
+					totalRating = @totalRating, 
+					discountPrice= @discountPrice,
+					originalPrice = @originalPrice,
+					description = @description,
+					bookImage =@bookImage,
+					BookCount = @bookCount
+				where 
+					bookId = @bookId;
+End;
+
+-- Procedure To Delete a Book
+create or alter proc DeleteBook
+(
+    @bookId int
+)
+as
+BEGIN
+	Delete Books 
+		where 
+		bookId = @bookId;
+End;
+
+-- Procedure To Get a Book by Its BookId
+create or alter proc GetBookByBookId
+(
+    @bookId int
+)
+as
+BEGIN
+	select * from Books
+	where
+		bookId = @bookId;
+End;
+
+-- Procedure To Get All Book From Table
+create or alter proc GetAllBook
+as
+BEGIN
+	select * from Books;
+End;

@@ -254,3 +254,70 @@ BEGIN
 	where
 	UserId = @UserId;
 End;
+
+/******* Create WishList Table *******/
+create Table Wishlist
+(
+	WishlistId INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	UserId INT NOT NULL FOREIGN KEY REFERENCES Users(UserId) on delete no action,
+	bookId INT NOT NULL FOREIGN KEY REFERENCES Books(bookId) on delete no action
+);
+
+
+/******* Stored Procedure For Wishlist Table ********/
+-- Procedure To Add In Wishlist
+create or alter proc AddInWishlist
+(
+	@UserId int,
+	@BookId int
+)
+as
+BEGIN
+	If Exists (Select * from Wishlist where UserId = @UserId and bookId = @BookId)
+		begin 
+			select 2;
+		end
+	Else
+		begin 
+			if Exists (select * from Books where bookId = @BookId)
+				begin
+					Insert into Wishlist(UserId, bookId)
+					values (@UserId , @BookId);
+				end
+			else
+				begin
+					select 1;
+				end
+		end
+End;
+
+-- Procedure To Delete from Wishlist
+create or alter proc DeleteFromWishlist
+(
+	@WishlistId int,
+	@UserId int
+)
+as
+BEGIN 
+	Delete Wishlist 
+	where WishlistId = @WishlistId
+		  and
+		  UserId = @UserId;
+End;	 
+
+-- Procedure To Get Records from Wishlist
+create or alter proc GetAllRecordsFromWishlist
+(
+	@UserId int
+)
+as
+BEGIN
+	select w.WishlistId,w.UserId,w.bookId,
+	b.bookName,b.authorName,b.discountPrice,b.originalPrice,
+	b.bookImage
+	from Wishlist w
+	Inner join Books b
+	on w.bookId = b.bookId
+	where 
+		UserId = @UserId;
+END;

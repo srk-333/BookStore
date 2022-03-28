@@ -101,13 +101,15 @@
                 SqlDataReader rd = com.ExecuteReader();
                 if (rd.HasRows)
                 {
+                    int userId = 0;
                     while (rd.Read())
                     {
                         email = Convert.ToString(rd["Email"] == DBNull.Value ? default : rd["Email"]);
+                        userId = Convert.ToInt32(rd["UserId"] == DBNull.Value ? default : rd["UserId"]);
                     }
 
                     this.sqlConnection.Close();
-                    var token = this.GenerateJWTToken(email);
+                    var token = this.GenerateJWTToken(email, userId);
                     return token;
                 }
                 else
@@ -131,18 +133,27 @@
         /// </summary>
         /// <param name="email">The email.</param>
         /// <returns> Token string </returns>
-        public string GenerateJWTToken(string email)
+        public string GenerateJWTToken(string email, int userId)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(this.Configuration["Jwt:SecretKey"]);
-            var tokenDescriptor = new SecurityTokenDescriptor
+            // header
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this.Configuration["Jwt:SecretKey"]));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            // payload
+            var claims = new[]
             {
-                Subject = new ClaimsIdentity(new[] { new Claim("Email", email) }),
-                Expires = DateTime.UtcNow.AddHours(1),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                new Claim("Email", email.ToString()),
+                new Claim("Id", userId.ToString()),
             };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+
+            // signature
+            var token = new JwtSecurityToken(
+                this.Configuration["Jwt:Issuer"],
+                this.Configuration["Jwt:Issuer"],
+                claims,
+                expires: DateTime.Now.AddMinutes(60),
+                signingCredentials: credentials);
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
         /// <summary>
@@ -161,16 +172,24 @@
                 };
                 com.Parameters.AddWithValue("@Email", email);
                 this.sqlConnection.Open();
-                int i = com.ExecuteNonQuery();
-                this.sqlConnection.Close();
-                if (i >= 1)
+                SqlDataReader rd = com.ExecuteReader();
+                if (rd.HasRows)
                 {
-                    var token = this.GenerateJWTToken(email);
+                    int userId = 0;
+                    while (rd.Read())
+                    {
+                        email = Convert.ToString(rd["Email"] == DBNull.Value ? default : rd["Email"]);
+                        userId = Convert.ToInt32(rd["UserId"] == DBNull.Value ? default : rd["UserId"]);
+                    }
+
+                    this.sqlConnection.Close();
+                    var token = this.GenerateJWTToken(email, userId);
                     new MSMQ().Sender(token);
                     return token;
                 }
                 else
                 {
+                    this.sqlConnection.Close();
                     return null;
                 }
             }

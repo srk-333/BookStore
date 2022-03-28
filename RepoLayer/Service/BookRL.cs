@@ -249,29 +249,33 @@
                     CommandType = CommandType.StoredProcedure
                 };
 
-                SqlDataAdapter dataAdapter = new SqlDataAdapter(cmd);
-                DataTable dt = new DataTable();
                 this.sqlConnection.Open();
-                dataAdapter.Fill(dt);
-                foreach (DataRow rw in dt.Rows)
+                SqlDataReader reader = cmd.ExecuteReader();
+                if (reader.HasRows)
                 {
-                    book.Add(new BookModel
+                    while (reader.Read())
                     {
-                        BookId = Convert.ToInt32(rw["bookId"]),
-                        BookName = rw["bookName"].ToString(),
-                        AuthorName = rw["authorName"].ToString(),
-                        Rating = Convert.ToInt32(rw["rating"]),
-                        TotalRating = Convert.ToInt32(rw["totalRating"]),
-                        DiscountPrice = Convert.ToDecimal(rw["discountPrice"]),
-                        OriginalPrice = Convert.ToDecimal(rw["originalPrice"]),
-                        Description = rw["description"].ToString(),
-                        BookImage = rw["bookImage"].ToString(),
-                        BookCount = Convert.ToInt32(rw["BookCount"])
-                    });
+                        book.Add(new BookModel
+                        {
+                            BookId = Convert.ToInt32(reader["bookId"]),
+                            BookName = reader["bookName"].ToString(),
+                            AuthorName = reader["authorName"].ToString(),
+                            Rating = Convert.ToInt32(reader["rating"]),
+                            TotalRating = Convert.ToInt32(reader["totalRating"]),
+                            DiscountPrice = Convert.ToDecimal(reader["discountPrice"]),
+                            OriginalPrice = Convert.ToDecimal(reader["originalPrice"]),
+                            Description = reader["description"].ToString(),
+                            BookImage = reader["bookImage"].ToString(),
+                            BookCount = Convert.ToInt32(reader["BookCount"])
+                        });
+                    }
+                    this.sqlConnection.Close();
+                    return book;
                 }
-
-                this.sqlConnection.Close();
-                return book;
+                else
+                {
+                    return null;
+                }
             }
             catch (Exception)
             {

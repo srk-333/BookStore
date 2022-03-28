@@ -63,6 +63,7 @@ begin
 		Password ='Null'
 	where 
 		Email = @Email;
+    select * from Users where Email = @Email;
 End;
 
 -- Procedure For Reset Password --
@@ -175,4 +176,81 @@ create or alter proc GetAllBook
 as
 BEGIN
 	select * from Books;
+End;
+
+/******* Create Cart Table *******/
+create Table Carts
+(
+	CartId INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	Quantity INT default 1,
+	UserId INT FOREIGN KEY REFERENCES Users(UserId) on delete no action,
+	BookId INT FOREIGN KEY REFERENCES Books(bookId) on delete no action
+);
+
+/******* Stored Procedure For Cart Table ********/
+-- Procedure To Add In Cart
+create or alter Proc AddCart
+(
+	@Quantity int,
+	@UserId int,
+	@BookId int
+)
+as
+BEGIN
+	if(Exists (select * from Books where bookId = @BookId))
+	begin
+		Insert Into Carts (Quantity, UserId, BookId)
+		Values (@Quantity, @UserId, @BookId);
+	end
+	else
+	begin
+		select 1
+	end			 
+End;
+
+-- Procedure To Delete from Cart
+create or alter Proc DeleteCart
+(
+	@CartId int,
+	@UserId int
+)
+as
+BEGIN
+	Delete Carts 
+	where CartId = @CartId
+	      and
+	      UserId = @UserId;; 
+End;
+
+-- Procedure To Update Cart
+create or alter Proc UpdateCart
+(
+	@Quantity int,
+	@BookId int,
+	@UserId int,
+	@CartId int
+)
+as
+BEGIN
+	update Carts 
+	set BookId = @BookId,
+	Userid = @UserId,
+	Quantity = @Quantity 
+	where CartId = @CartId;
+End;
+
+-- Procedure To Get rows from Cart by UserId
+create or alter Proc GetCartbyUser
+(
+	@UserId int
+)
+as
+BEGIN
+	Select CartId, Quantity, UserId,
+	bookName, authorName, discountPrice, originalPrice, bookImage
+	from Carts c
+	join Books b on
+	c.BookId = b.bookId
+	where
+	UserId = @UserId;
 End;

@@ -269,6 +269,7 @@
                             BookCount = Convert.ToInt32(reader["BookCount"])
                         });
                     }
+
                     this.sqlConnection.Close();
                     return book;
                 }

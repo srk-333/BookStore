@@ -19,14 +19,14 @@
     public class CartController : ControllerBase
     {
         /// <summary>
-        /// The cart bl
+        /// The cart BL
         /// </summary>
         private readonly ICartBL cartBL;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CartController"/> class.
         /// </summary>
-        /// <param name="cartBL">The cart bl.</param>
+        /// <param name="cartBL">The cart BL</param>
         public CartController(ICartBL cartBL)
         {
             this.cartBL = cartBL;
@@ -36,7 +36,7 @@
         /// Adds the cart.
         /// </summary>
         /// <param name="cart">The cart.</param>
-        /// <returns> Bokk Added in the Cart</returns>
+        /// <returns> Book Added in the Cart</returns>
         [Authorize]
         [HttpPost("Add")]
         public IActionResult AddCart(Cart cart)
@@ -118,7 +118,7 @@
         /// <summary>
         /// Gets the cart.
         /// </summary>
-        /// <returns> List of Recrds from Cart and Book Table</returns>
+        /// <returns> List of Records from Cart and Book Table</returns>
         [Authorize]
         [HttpGet("{UserId}/ Get")]
         public IActionResult GetCart()
@@ -127,7 +127,7 @@
             {
                 int userId = Convert.ToInt32(User.Claims.FirstOrDefault(e => e.Type == "Id").Value);
                 var cartData = this.cartBL.GetCartDetails(userId);
-                if (cartData != null )
+                if (cartData != null)
                 {
                     return this.Ok(new { success = true, message = "Cat Data Fetched Successfully ", response = cartData });
                 }

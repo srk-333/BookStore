@@ -200,10 +200,13 @@
                         booksModel.DiscountPrice = Convert.ToDecimal(reader["discountPrice"]);
                         booksModel.BookImage = reader["bookImage"].ToString();
                         cart.UserId = Convert.ToInt32(reader["UserId"]);
+                        cart.UserId = Convert.ToInt32(reader["BookId"]);
                         cart.CartId = Convert.ToInt32(reader["CartId"]);
-                        cart.bookmodel = booksModel;
+                        cart.Quantity = Convert.ToInt32(reader["Quantity"]);
+                        cart.Bookmodel = booksModel;
                         cartmodel.Add(cart);
                     }
+
                     this.sqlConnection.Close();
                     return cartmodel;
                 }

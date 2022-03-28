@@ -132,7 +132,8 @@
         /// Generates the JWT token.
         /// </summary>
         /// <param name="email">The email.</param>
-        /// <returns> Token string </returns>
+        /// <param name="userId">The user identifier.</param>
+        /// <returns>Jwt Token</returns>
         public string GenerateJWTToken(string email, int userId)
         {
             // header

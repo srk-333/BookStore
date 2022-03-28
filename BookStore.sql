@@ -246,7 +246,7 @@ create or alter Proc GetCartbyUser
 )
 as
 BEGIN
-	Select CartId, Quantity, UserId,
+	Select CartId, Quantity, UserId,c.BookId,
 	bookName, authorName, discountPrice, originalPrice, bookImage
 	from Carts c
 	join Books b on

@@ -321,3 +321,106 @@ BEGIN
 	where 
 		UserId = @UserId;
 END;
+
+/******* Create Address Type Table *******/
+create Table AddressType
+(
+	TypeId INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	TypeName varchar(255) not null
+);
+
+--Insert fix Record for AddressType
+Insert into AddressType
+values('Home'),('Office'),('Other');
+
+/******* Create Address Table *******/
+create Table AddressTab
+(
+	AddressId INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	Address varchar(max) not null,
+	City varchar(100) not null,
+	State varchar(100) not null,
+	TypeId int not null 
+	FOREIGN KEY (TypeId) REFERENCES AddressType(TypeId),
+	UserId INT NOT NULL
+	FOREIGN KEY (UserId) REFERENCES Users(UserId),
+);
+
+/******* Stored Procedure For Address Table ********/
+-- Procedure To Add Address
+create or alter proc AddAddress
+(
+	@Address varchar(max),
+	@City varchar(100),
+	@State varchar(100),
+	@TypeId int,
+	@UserId int
+)
+as
+BEGIN
+	If Exists (select * from AddressType where TypeId = @TypeId)
+		begin
+			Insert into AddressTab 
+			values(@Address, @City, @State, @TypeId, @UserId);
+		end
+	Else
+		begin
+			select 2
+		end
+End;
+
+-- Procedure To Update Address
+create or alter proc UpdateAddress
+(
+	@AddressId int,
+	@Address varchar(max),
+	@City varchar(100),
+	@State varchar(100),
+	@TypeId int,
+	@UserId int
+)
+as
+BEGIN
+	If Exists (select * from AddressType where TypeId = @TypeId)
+		begin
+			Update AddressTab set
+			Address = @Address, City = @City,
+			State = @State , TypeId = @TypeId,
+			UserId = @UserId
+			where
+				AddressId = @AddressId
+		end
+	Else
+		begin
+			select 2
+		end
+End;
+
+-- Procedure To Delete a Address
+create or alter Proc DeleteAddress
+(
+	@AddressId int,
+	@UserId int
+)
+as
+BEGIN
+	Delete AddressTab
+	where 
+		AddressId = @AddressId 
+	and
+		UserId = @UserId;
+End;
+
+-- Procedure To Get All Address
+create or alter Proc GetAllAddress
+(
+	@UserId int
+)
+as
+BEGIN
+	Select Address, City, State,a1.UserId, a2.TypeId
+	from AddressTab a1
+    Inner join AddressType a2 on a2.TypeId = a1.TypeId 
+	where 
+	UserId = @UserId;
+END;

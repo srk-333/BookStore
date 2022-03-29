@@ -424,3 +424,131 @@ BEGIN
 	where 
 	UserId = @UserId;
 END;
+
+/******* Create Feedback Table *******/
+create Table FeedbackTab
+(
+	FeedbackId INT NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	Comment varchar(max) not null,
+	Rating int not null,
+	bookId int not null 
+	FOREIGN KEY (bookId) REFERENCES Books(bookId),
+	UserId INT NOT NULL
+	FOREIGN KEY (UserId) REFERENCES Users(UserId),
+);
+
+/******* Stored Procedures For Feedback Table *******/
+-- Procedure to Add Feedback ---
+create or alter Proc AddFeedback
+(
+	@Comment varchar(max),
+	@Rating int,
+	@BookId int,
+	@UserId int
+)
+as
+Declare @AverageRating int;
+BEGIN
+	IF (EXISTS(SELECT * FROM FeedbackTab WHERE bookId = @BookId and UserId=@UserId))
+		select 1;
+	Else
+	Begin
+		IF (EXISTS(SELECT * FROM Books WHERE bookId = @BookId))
+		Begin  select * from FeedbackTab
+			Begin try
+				Begin transaction
+					Insert into FeedbackTab(Comment, Rating, bookId, UserId) values(@Comment, @Rating, @BookId, @UserId);		
+					set @AverageRating = (Select AVG(Rating) from FeedbackTab where bookId = @BookId);
+					Update Books set rating = @AverageRating,  totalRating = totalRating + 1 
+								 where  bookId = @BookId;
+				Commit Transaction
+			End Try
+			Begin catch
+				Rollback transaction
+			End catch
+		End
+		Else
+		Begin
+			Select 2; 
+		End
+	End
+END;
+
+-- Procedure to Delete Feedback ---
+create or alter Proc DeleteFeedback
+(
+	@FeedbackId int,
+	@UserId int
+)
+as
+BEGIN
+	Delete FeedbackTab
+		where
+			FeedbackId = @FeedbackId
+			and
+			UserId = @UserId;
+END;
+
+-- Procedure to Get All Feedback ---
+create or alter Proc GetAllFeedback
+(
+	@BookId int
+)
+as
+BEGIN
+	Select FeedbackId, Comment, Rating, bookId, u.FullName
+	From Users u
+	Inner Join FeedbackTab f
+	on f.UserId = u.UserId
+	where
+	 BookId = @BookId;
+END;
+
+-- Procedure to Update Feedback ---
+create or alter Proc UpdateFeedback
+(
+	@Comment varchar(max),
+	@Rating int,
+	@BookId int,
+	@FeedbackId int,
+	@UserId int
+)
+as
+Declare @AverageRating int;
+BEGIN
+	IF (EXISTS(SELECT * FROM FeedbackTab WHERE bookId = @BookId and UserId=@UserId))
+		select 1;
+	Else
+	Begin
+		IF (EXISTS(SELECT * FROM Books WHERE bookId = @BookId))
+		Begin
+			Begin try
+				Begin transaction
+					Update FeedbackTab set Comment = @Comment, Rating = @Rating, UserId = @UserId, bookId = @BookId
+									where FeedbackId = @FeedbackId;	
+					select @AverageRating = AVG(Rating) from FeedbackTab 
+									where bookId = @BookId;
+					Update Books set rating = @AverageRating,  totalRating = totalRating+1 
+								    where bookId = @BookId;
+				Commit Transaction
+			End Try
+			Begin catch
+				Rollback transaction
+			End catch
+		End
+		Else
+		Begin
+			Select 2; 
+		End
+	End
+END;
+
+select * from Users
+select * from Books
+select * from FeedbackTab
+
+Exec AddFeedback
+@Comment = 'Good Book',
+@Rating = 4,
+@BookId = 4,
+@UserId = 3;

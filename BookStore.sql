@@ -516,18 +516,14 @@ create or alter Proc UpdateFeedback
 as
 Declare @AverageRating int;
 BEGIN
-	IF (EXISTS(SELECT * FROM FeedbackTab WHERE bookId = @BookId and UserId=@UserId))
-		select 1;
-	Else
-	Begin
-		IF (EXISTS(SELECT * FROM Books WHERE bookId = @BookId))
+	IF (EXISTS(SELECT * FROM FeedbackTab WHERE FeedbackId = @FeedbackId))
 		Begin
 			Begin try
 				Begin transaction
 					Update FeedbackTab set Comment = @Comment, Rating = @Rating, UserId = @UserId, bookId = @BookId
 									where FeedbackId = @FeedbackId;	
-					select @AverageRating = AVG(Rating) from FeedbackTab 
-									where bookId = @BookId;
+					set @AverageRating = (select AVG(Rating) from FeedbackTab 
+									where bookId = @BookId);
 					Update Books set rating = @AverageRating,  totalRating = totalRating+1 
 								    where bookId = @BookId;
 				Commit Transaction
@@ -536,19 +532,78 @@ BEGIN
 				Rollback transaction
 			End catch
 		End
-		Else
+	Else
 		Begin
 			Select 2; 
 		End
-	End
 END;
 
-select * from Users
-select * from Books
-select * from FeedbackTab
+/******* Create Order Table *******/
+create table OrdersTable
+(
+	OrdersId int identity(1,1) not null primary key,
+	TotalPrice int not null,
+	BookQuantity int not null,
+	OrderDate Date not null,
+	UserId int not null FOREIGN KEY (UserId) REFERENCES Users(UserId),
+	bookId int not null FOREIGN KEY (bookId) REFERENCES Books(bookId),
+	AddressId int not null FOREIGN KEY (AddressId) REFERENCES AddressTab(AddressId)
+);
 
-Exec AddFeedback
-@Comment = 'Good Book',
-@Rating = 4,
-@BookId = 4,
-@UserId = 3;
+/******* Stored Procedures For Orders Table *******/
+------ Procedure to Add Orders ---------
+Create or Alter Proc AddOrders
+(
+	@BookQuantity int,
+	@UserId int,
+	@BookId int,
+	@AddressId int
+)
+as
+Declare @TotalPrice int
+BEGIN
+	set @TotalPrice = (select discountPrice from Books where bookId = @BookId);
+	If(Exists(Select * from Books where bookId = @BookId))
+		BEGIN
+			If(Exists (Select * from Users where UserId = @UserId))
+				BEGIN
+					Begin try
+						Begin Transaction
+						Insert Into OrdersTable (TotalPrice, BookQuantity, OrderDate, UserId, bookId, AddressId)
+						Values(@TotalPrice*@BookQuantity, @BookQuantity, GETDATE(), @UserId, @BookId, @AddressId);
+						Update Books set BookCount=BookCount-@BookQuantity where bookId = @BookId;
+						Delete from Carts where BookId = @BookId and UserId = @UserId;
+						select * from OrdersTable;
+						commit Transaction
+					End try
+					Begin Catch
+							rollback;
+					End Catch
+				END
+			Else
+				Begin
+					Select 3;
+				End
+		End
+	Else
+		Begin
+			Select 2;
+		End
+END;
+
+------ Procedure to Get All Orders ---------
+Create or Alter Proc GetOrders
+(
+	@UserId int
+)
+as
+begin
+		Select 
+		O.OrdersId, O.UserId, O.AddressId, b.bookId,
+		O.TotalPrice, O.BookQuantity, O.OrderDate,
+		b.bookName, b.AuthorName, b.bookImage
+		FROM Books b
+		inner join OrdersTable O on O.bookId = b.bookId 
+		where 
+			O.UserId = @UserId;
+END

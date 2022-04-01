@@ -5,6 +5,7 @@
     using System.Text;
     using BusinessLayer.Interface;
     using CommonLayer.Models;
+    using CommonLayer.Token;
     using RepoLayer.Interface;
 
     /// <summary>
@@ -50,7 +51,7 @@
         /// <param name="email">The email.</param>
         /// <param name="password">The password.</param>
         /// <returns> Login Token </returns>
-        public string UserLogin(string email, string password)
+        public UserAccount UserLogin(string email, string password)
         {
             try
             {

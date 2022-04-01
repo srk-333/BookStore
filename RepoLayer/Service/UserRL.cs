@@ -8,6 +8,7 @@
     using System.Security.Claims;
     using System.Text;
     using CommonLayer.Models;
+    using CommonLayer.Token;
     using Microsoft.Extensions.Configuration;
     using Microsoft.IdentityModel.Tokens;
     using RepoLayer.Interface;
@@ -86,7 +87,7 @@
         /// <param name="email">The email.</param>
         /// <param name="password">The password.</param>
         /// <returns> Login Token String </returns>
-        public string UserLogin(string email, string password)
+        public UserAccount UserLogin(string email, string password)
         {
             try
             {
@@ -101,16 +102,17 @@
                 SqlDataReader rd = com.ExecuteReader();
                 if (rd.HasRows)
                 {
-                    int userId = 0;
+                    UserAccount user = new UserAccount();
                     while (rd.Read())
                     {
-                        email = Convert.ToString(rd["Email"] == DBNull.Value ? default : rd["Email"]);
-                        userId = Convert.ToInt32(rd["UserId"] == DBNull.Value ? default : rd["UserId"]);
+                        user.Email = Convert.ToString(rd["Email"] == DBNull.Value ? default : rd["Email"]);
+                        user.UserId = Convert.ToInt32(rd["UserId"] == DBNull.Value ? default : rd["UserId"]);
+                        user.FullName = Convert.ToString(rd["FullName"] == DBNull.Value ? default : rd["FullName"]);
                     }
 
                     this.sqlConnection.Close();
-                    var token = this.GenerateJWTToken(email, userId);
-                    return token;
+                    user.Token = this.GenerateJWTToken(user);
+                    return user;
                 }
                 else
                 {
@@ -134,7 +136,7 @@
         /// <param name="email">The email.</param>
         /// <param name="userId">The user identifier.</param>
         /// <returns>Jwt Token</returns>
-        public string GenerateJWTToken(string email, int userId)
+        public string GenerateJWTToken(UserAccount user)
         {
             // header
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this.Configuration["Jwt:SecretKey"]));
@@ -143,8 +145,9 @@
             // payload
             var claims = new[]
             {
-                new Claim("Email", email.ToString()),
-                new Claim("Id", userId.ToString()),
+                new Claim(ClaimTypes.Role, "User"),
+                new Claim("Email", user.Email),
+                new Claim("Id", user.UserId.ToString()),
             };
 
             // signature
@@ -184,7 +187,7 @@
                     }
 
                     this.sqlConnection.Close();
-                    var token = this.GenerateJWTToken(email, userId);
+                    var token = this.GenerateJWTTokenForPassword(email, userId);
                     new MSMQ().Sender(token);
                     return token;
                 }
@@ -202,6 +205,29 @@
             {
                 this.sqlConnection.Close();
             }
+        }
+
+        public string GenerateJWTTokenForPassword(string email, int userId)
+        {
+            // header
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this.Configuration["Jwt:SecretKey"]));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            // payload
+            var claims = new[]
+            {
+                new Claim("Email", email),
+                new Claim("Id", userId.ToString()),
+            };
+
+            // signature
+            var token = new JwtSecurityToken(
+                this.Configuration["Jwt:Issuer"],
+                this.Configuration["Jwt:Issuer"],
+                claims,
+                expires: DateTime.Now.AddMinutes(60),
+                signingCredentials: credentials);
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
         /// <summary>

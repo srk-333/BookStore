@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Text;
     using CommonLayer.Models;
+    using CommonLayer.Token;
 
     /// <summary>
     ///  Interface class 
@@ -23,7 +24,7 @@
         /// <param name="email">The email.</param>
         /// <param name="password">The password.</param>
         /// <returns>Login Token</returns>
-        public string UserLogin(string email, string password);
+        public UserAccount UserLogin(string email, string password);
 
         /// <summary>
         /// Forgot the password.

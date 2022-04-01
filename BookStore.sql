@@ -607,3 +607,47 @@ begin
 		where 
 			O.UserId = @UserId;
 END
+
+/********** Admin Table *********/
+create Table Admins
+(
+	AdminId int identity(1,1) primary key,
+	FullName varchar(max) not null,
+	Email varchar(max) not null,
+	Password varchar(max) not null,
+	PhoneNumber varchar(20) not null
+);
+
+---- Add a Admin ----
+Insert into Admins 
+values('Admin', 'admin123@gmail.com', 'admin123', '7856347889');
+select * from Admins
+
+---- Alter Books Table ----
+Alter table Books 
+Add AdminId int not null 
+Foreign key(AdminId) References Admins(AdminId) default 1;
+
+select * from Books
+
+------ Prcedure For Login Admin ------
+create or alter Proc LoginAdmin
+(
+	@Email varchar(max),
+	@Password varchar(max)
+)
+as
+BEGIN
+	If(Exists(select * from Admins where Email = @Email and Password = @Password))
+		Begin
+			select AdminId, FullName, Email, PhoneNumber from Admins;
+		end
+	Else
+		Begin
+			select 2;
+		End
+END;
+
+Exec LoginAdmin
+@Email = 'admin123@gmail.com',
+@Password = 'admin123';

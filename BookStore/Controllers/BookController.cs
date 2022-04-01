@@ -7,6 +7,7 @@
     using System.Threading.Tasks;
     using BusinessLayer.Interface;
     using CommonLayer.Models;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
 
@@ -39,7 +40,8 @@
         /// <returns>
         /// Added Book Details
         /// </returns>
-        [HttpPost("Add")]
+        [Authorize(Roles = Role.Admin)]
+        [HttpPost("post")]
         public IActionResult AddBook(AddBookModel book)
         {
             try
@@ -65,6 +67,7 @@
         /// </summary>
         /// <param name="book">The book.</param>
         /// <returns>Updated Book Detail</returns>
+        [Authorize(Roles = Role.Admin)]
         [HttpPut("Update")]
         public IActionResult UpdateBook(BookModel book)
         {
@@ -91,6 +94,7 @@
         /// </summary>
         /// <param name="bookId">The book identifier.</param>
         /// <returns> Book Deleted Message </returns>
+        [Authorize(Roles = Role.Admin)]
         [HttpDelete("Delete")]
         public IActionResult DeleteBook(int bookId)
         {
@@ -116,6 +120,7 @@
         /// </summary>
         /// <param name="bookId">The book identifier.</param>
         /// <returns> Book Detail Related to specific Book Id </returns>
+        [Authorize(Roles = Role.User)]
         [HttpGet("{bookId}/Get")]
         public IActionResult GetBookByBookId(int bookId)
         {
@@ -141,6 +146,7 @@
         /// Gets the book.
         /// </summary>
         /// <returns> All Books Detail </returns>
+        [Authorize(Roles = Role.User)]
         [HttpGet("Get")]
         public IActionResult GetBook()
         {

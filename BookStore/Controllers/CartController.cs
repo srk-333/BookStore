@@ -37,7 +37,7 @@
         /// </summary>
         /// <param name="cart">The cart.</param>
         /// <returns> Book Added in the Cart</returns>
-        [Authorize]
+        [Authorize(Roles = Role.User)]
         [HttpPost("Add")]
         public IActionResult AddCart(Cart cart)
         {
@@ -65,7 +65,7 @@
         /// </summary>
         /// <param name="cart">The cart.</param>
         /// <returns>Update cart Detail</returns>
-        [Authorize]
+        [Authorize(Roles = Role.User)]
         [HttpPut("Update")]
         public IActionResult UpdateCart(Cart cart)
         {
@@ -93,7 +93,7 @@
         /// </summary>
         /// <param name="cartId">The cart identifier.</param>
         /// <returns>True or False </returns>
-        [Authorize]
+        [Authorize(Roles = Role.User)]
         [HttpDelete("Delete")]
         public IActionResult DeleteCart(int cartId)
         {
@@ -119,7 +119,7 @@
         /// Gets the cart.
         /// </summary>
         /// <returns> List of Records from Cart and Book Table</returns>
-        [Authorize]
+        [Authorize(Roles = Role.User)]
         [HttpGet("{UserId}/ Get")]
         public IActionResult GetCart()
         {

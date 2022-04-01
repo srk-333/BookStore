@@ -15,7 +15,7 @@
     /// </summary>
     /// <seealso cref="Microsoft.AspNetCore.Mvc.ControllerBase" />
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(Roles = Role.User)]
     [ApiController]
     public class WishListController : ControllerBase
     {

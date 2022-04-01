@@ -37,7 +37,7 @@
         /// </summary>
         /// <param name="feedback">The feedback.</param>
         /// <returns>Added feedback Message</returns>
-        [Authorize]
+        [Authorize(Roles = Role.User)]
         [HttpPost("Add")]
         public IActionResult AddFeedback(FeedbackModel feedback)
         {
@@ -65,7 +65,7 @@
         /// </summary>
         /// <param name="feedbackId">The feedback identifier.</param>
         /// <returns>True Or False</returns>
-        [Authorize]
+        [Authorize(Roles = Role.User)]
         [HttpDelete("Delete")]
         public IActionResult DeleteFeedback(int feedbackId)
         {
@@ -93,7 +93,7 @@
         /// <param name="feedback">The feedback.</param>
         /// <param name="feedbackId">The feedback identifier.</param>
         /// <returns> Updated feedback Message</returns>
-        [Authorize]
+        [Authorize(Roles = Role.User)]
         [HttpPut("Update")]
         public IActionResult UpdateFeedback(FeedbackModel feedback, int feedbackId)
         {
